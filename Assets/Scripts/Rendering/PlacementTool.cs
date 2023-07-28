@@ -1,3 +1,4 @@
+using SunnyMonster.GoEngine.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,11 +17,13 @@ namespace SunnyMonster.GoEngine.Rendering
         {
             _rectTransform = GetComponent<RectTransform>();
             _rectTransform.sizeDelta = new Vector2(_boardDisplay.DistsanceBetweenLines, _boardDisplay.DistsanceBetweenLines);
-            _boardDisplay.BoardSizeChanged += OnBoardSizeChanged;
+            _boardDisplay.WindowSizeChanged += OnWindowSizeChanged;
         }
 
         private void Update()
         {
+            GetComponent<Image>().color = _boardDisplay.Game.CurrentPlayer == Player.Black ? new Color(0, 0, 0, 0.5f) : new Color(1, 1, 1, 0.5f);
+
             _mousePosition.position = Input.mousePosition;
             var distanceBetweenLines = _boardDisplay.DistsanceBetweenLines;
             var mousePosition = new Vector2(_mousePosition.anchoredPosition.x - distanceBetweenLines / 2, _mousePosition.anchoredPosition.y - distanceBetweenLines / 2);
@@ -33,12 +36,20 @@ namespace SunnyMonster.GoEngine.Rendering
             _rectTransform.anchoredPosition = new Vector2(x, y);
 
             if (cellX < 0 || cellX >= _boardDisplay.BoardSize || cellY < 0 || cellY >= _boardDisplay.BoardSize)
+            {
                 GetComponent<Image>().enabled = false;
+                return;
+            }
             else
                 GetComponent<Image>().enabled = true;
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                _boardDisplay.Game.PlaceStone(cellX, cellY);
+            }
         }
 
-        private void OnBoardSizeChanged()
+        private void OnWindowSizeChanged()
         {
             GetComponent<RectTransform>().sizeDelta = new Vector2(_boardDisplay.DistsanceBetweenLines, _boardDisplay.DistsanceBetweenLines);
         }

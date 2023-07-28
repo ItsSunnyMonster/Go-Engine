@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using SunnyMonster.GoEngine.Core;
 using SunnyMonster.GoEngine.Utils;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,10 +17,14 @@ namespace SunnyMonster.GoEngine.Rendering
         [SerializeField]
         private Color _lineColor = Color.black;
 
-        public event Action BoardSizeChanged;
+        public event Action WindowSizeChanged;
+
+        private Game _game;
 
         private void Start()
         {
+            _game = new Game(_boardSize);
+            _game.BoardChanged += DrawStones;
             DrawLines();
         }
 
@@ -81,8 +86,41 @@ namespace SunnyMonster.GoEngine.Rendering
 
         private void OnRectTransformDimensionsChange()
         {
-            BoardSizeChanged?.Invoke();
+            WindowSizeChanged?.Invoke();
             DrawLines();
+            DrawStones();
+        }
+
+        private void DrawStones()
+        {
+            // Destroy stones
+            foreach (Transform child in transform)
+            {
+                if (child.name.Contains("Stone"))
+                    Destroy(child.gameObject);
+            }
+
+            // Loop through board
+            for (var x = 0; x < _boardSize; x++)
+            {
+                for (var y = 0; y < _boardSize; y++)
+                {
+                    // If there is a stone, draw it
+                    if (_game != null && _game.Board[x, y] != Point.Empty)
+                    {
+                        var stone = new GameObject($"Stone {x}, {y}", typeof(Image));
+                        stone.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Stone");
+                        stone.transform.SetParent(transform);
+                        var rectTransform = stone.GetComponent<RectTransform>();
+                        rectTransform.sizeDelta = new Vector2(DistsanceBetweenLines, DistsanceBetweenLines);
+                        rectTransform.anchorMin = new Vector2(0, 0);
+                        rectTransform.anchorMax = new Vector2(0, 0);
+                        rectTransform.pivot = new Vector2(0, 0);
+                        stone.GetComponent<Image>().color = _game.Board[x, y] == Point.Black ? Color.black : Color.white;
+                        rectTransform.anchoredPosition = new Vector2(DistsanceBetweenLines * x, DistsanceBetweenLines * y);
+                    }
+                }
+            }
         }
 
         public float DistsanceBetweenLines
@@ -98,6 +136,14 @@ namespace SunnyMonster.GoEngine.Rendering
             get
             {
                 return _boardSize;
+            }
+        }
+
+        public Game Game
+        {
+            get
+            {
+                return _game;
             }
         }
     }
