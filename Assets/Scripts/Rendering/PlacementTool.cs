@@ -71,7 +71,7 @@ namespace SunnyMonster.GoEngine.Rendering
 
         private void OnWindowSizeChanged()
         {
-            GetComponent<RectTransform>().sizeDelta = new Vector2(_boardDisplay.DistsanceBetweenLines, _boardDisplay.DistsanceBetweenLines);
+            _displayTransform.sizeDelta = new Vector2(_boardDisplay.DistsanceBetweenLines, _boardDisplay.DistsanceBetweenLines);
         }
 
         private void OnBoardChanged()
