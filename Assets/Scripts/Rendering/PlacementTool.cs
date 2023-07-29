@@ -18,8 +18,6 @@ namespace SunnyMonster.GoEngine.Rendering
 
         private List<PointCoordinate> _illegalMoves = new();
 
-        private bool _focused = true;
-
         private void Start()
         {
             _displayTransform.sizeDelta = new Vector2(_boardDisplay.DistsanceBetweenLines, _boardDisplay.DistsanceBetweenLines);
@@ -56,18 +54,8 @@ namespace SunnyMonster.GoEngine.Rendering
 
             if (Input.GetMouseButtonDown(0))
             {
-                if (!_focused)
-                    _focused = true;
-                else
-                    _boardDisplay.Game.PlaceStone(cellX, cellY);
+                _boardDisplay.Game.PlaceStone(cellX, cellY);
             }
-        }
-
-        private void OnApplicationFocus(bool focusStatus)
-        {
-            // TODO: Remove focus check
-            if (!focusStatus)
-                _focused = false;
         }
 
         private void OnWindowSizeChanged()
