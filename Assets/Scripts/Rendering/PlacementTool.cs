@@ -13,6 +13,8 @@ namespace SunnyMonster.GoEngine.Rendering
 
         private RectTransform _rectTransform;
 
+        private bool _focused = true;
+
         private void Start()
         {
             _rectTransform = GetComponent<RectTransform>();
@@ -45,8 +47,17 @@ namespace SunnyMonster.GoEngine.Rendering
 
             if (Input.GetMouseButtonDown(0))
             {
-                _boardDisplay.Game.PlaceStone(cellX, cellY);
+                if (!_focused)
+                    _focused = true;
+                else
+                    _boardDisplay.Game.PlaceStone(cellX, cellY);
             }
+        }
+
+        private void OnApplicationFocus(bool focusStatus)
+        {
+            if (!focusStatus)
+                _focused = false;
         }
 
         private void OnWindowSizeChanged()
