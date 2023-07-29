@@ -9,22 +9,23 @@ namespace SunnyMonster.GoEngine.Rendering
         [SerializeField]
         private BoardDisplay _boardDisplay;
         [SerializeField]
+        private RectTransform _displayTransform;
+        [SerializeField]
+        private Image _displayImage;
+        [SerializeField]
         private RectTransform _mousePosition;
-
-        private RectTransform _rectTransform;
 
         private bool _focused = true;
 
         private void Start()
         {
-            _rectTransform = GetComponent<RectTransform>();
-            _rectTransform.sizeDelta = new Vector2(_boardDisplay.DistsanceBetweenLines, _boardDisplay.DistsanceBetweenLines);
+            _displayTransform.sizeDelta = new Vector2(_boardDisplay.DistsanceBetweenLines, _boardDisplay.DistsanceBetweenLines);
             _boardDisplay.WindowSizeChanged += OnWindowSizeChanged;
         }
 
         private void Update()
         {
-            GetComponent<Image>().color = _boardDisplay.Game.CurrentPlayer == Player.Black ? new Color(0, 0, 0, 0.5f) : new Color(1, 1, 1, 0.5f);
+            _displayImage.color = _boardDisplay.Game.CurrentPlayer == Player.Black ? new Color(0, 0, 0, 0.5f) : new Color(1, 1, 1, 0.5f);
 
             _mousePosition.position = Input.mousePosition;
             var distanceBetweenLines = _boardDisplay.DistsanceBetweenLines;
@@ -35,16 +36,16 @@ namespace SunnyMonster.GoEngine.Rendering
 
             var x = cellX * distanceBetweenLines + distanceBetweenLines / 2;
             var y = cellY * distanceBetweenLines + distanceBetweenLines / 2;
-            LeanTween.cancel(gameObject);
-            LeanTween.move(_rectTransform, new Vector2(x, y), 0.1f).setEaseOutQuad();
+            LeanTween.cancel(_displayTransform.gameObject);
+            LeanTween.move(_displayTransform, new Vector2(x, y), 0.1f).setEaseOutQuad();
 
             if (cellX < 0 || cellX >= _boardDisplay.BoardSize || cellY < 0 || cellY >= _boardDisplay.BoardSize)
             {
-                GetComponent<Image>().enabled = false;
+                _displayImage.enabled = false;
                 return;
             }
             else
-                GetComponent<Image>().enabled = true;
+                _displayImage.enabled = true;
 
             if (Input.GetMouseButtonDown(0))
             {

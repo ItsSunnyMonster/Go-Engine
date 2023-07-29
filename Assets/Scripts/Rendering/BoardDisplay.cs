@@ -10,6 +10,10 @@ namespace SunnyMonster.GoEngine.Rendering
     public class BoardDisplay : MonoBehaviour
     {
         [SerializeField]
+        private Transform _linesParent;
+        [SerializeField]
+        private Transform _stonesParent;
+        [SerializeField]
         [Range(1, 19)]
         private int _boardSize = 19;
         [SerializeField]
@@ -34,10 +38,9 @@ namespace SunnyMonster.GoEngine.Rendering
             var distanceBetweenLines = GetComponent<RectTransform>().rect.width / _boardSize;
 
             // Destroy lines
-            foreach (Transform child in transform)
+            foreach (Transform child in _linesParent)
             {
-                if (child.name.Contains("Line"))
-                    Destroy(child.gameObject);
+                Destroy(child.gameObject);
             }
 
             // Set up board color
@@ -49,7 +52,7 @@ namespace SunnyMonster.GoEngine.Rendering
                 // Horizontal lines
                 // Create game object
                 var horizontalLine = new GameObject($"Horizontal Line {i}", typeof(Image));
-                horizontalLine.transform.SetParent(transform);
+                horizontalLine.transform.SetParent(_linesParent);
                 var rectTransform = horizontalLine.GetComponent<RectTransform>();
                 // If first or last line, make it thicker
                 var thickness = i == 0 || i == _boardSize - 1 ? 4 : 2;
@@ -70,7 +73,7 @@ namespace SunnyMonster.GoEngine.Rendering
                 // Vertical lines
                 // Same as horizontal lines, but with x and y swapped
                 var verticalLine = new GameObject($"Vertical Line {i}", typeof(Image));
-                verticalLine.transform.SetParent(transform);
+                verticalLine.transform.SetParent(_linesParent);
                 rectTransform = verticalLine.GetComponent<RectTransform>();
                 thickness = i == 0 || i == _boardSize - 1 ? 4 : 2;
                 rectTransform.sizeDelta = new Vector2(thickness, 0);
@@ -94,10 +97,9 @@ namespace SunnyMonster.GoEngine.Rendering
         private void DrawStones()
         {
             // Destroy stones
-            foreach (Transform child in transform)
+            foreach (Transform child in _stonesParent)
             {
-                if (child.name.Contains("Stone"))
-                    Destroy(child.gameObject);
+                Destroy(child.gameObject);
             }
 
             // Loop through board
@@ -110,7 +112,7 @@ namespace SunnyMonster.GoEngine.Rendering
                     {
                         var stone = new GameObject($"Stone {x}, {y}", typeof(Image));
                         stone.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Stone");
-                        stone.transform.SetParent(transform);
+                        stone.transform.SetParent(_stonesParent);
                         var rectTransform = stone.GetComponent<RectTransform>();
                         rectTransform.sizeDelta = new Vector2(DistsanceBetweenLines, DistsanceBetweenLines);
                         rectTransform.anchorMin = new Vector2(0, 0);
