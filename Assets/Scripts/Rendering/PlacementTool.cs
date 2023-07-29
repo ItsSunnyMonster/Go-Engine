@@ -35,6 +35,7 @@ namespace SunnyMonster.GoEngine.Rendering
 
             var x = cellX * distanceBetweenLines + distanceBetweenLines / 2;
             var y = cellY * distanceBetweenLines + distanceBetweenLines / 2;
+            LeanTween.cancel(gameObject);
             LeanTween.move(_rectTransform, new Vector2(x, y), 0.1f).setEaseOutQuad();
 
             if (cellX < 0 || cellX >= _boardDisplay.BoardSize || cellY < 0 || cellY >= _boardDisplay.BoardSize)
