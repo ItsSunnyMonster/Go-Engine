@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using SunnyMonster.GoEngine.Core;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,12 +16,15 @@ namespace SunnyMonster.GoEngine.Rendering
         [SerializeField]
         private RectTransform _mousePosition;
 
+        private List<PointCoordinate> _illegalMoves = new();
+
         private bool _focused = true;
 
         private void Start()
         {
             _displayTransform.sizeDelta = new Vector2(_boardDisplay.DistsanceBetweenLines, _boardDisplay.DistsanceBetweenLines);
             _boardDisplay.WindowSizeChanged += OnWindowSizeChanged;
+            _boardDisplay.Game.BoardChanged += OnBoardChanged;
         }
 
         private void Update()
@@ -34,12 +38,15 @@ namespace SunnyMonster.GoEngine.Rendering
             var cellX = Mathf.RoundToInt(mousePosition.x / distanceBetweenLines);
             var cellY = Mathf.RoundToInt(mousePosition.y / distanceBetweenLines);
 
+            if (_illegalMoves.Contains(new PointCoordinate(cellX, cellY)))
+                _displayImage.color = Color.red;
+
             var x = cellX * distanceBetweenLines + distanceBetweenLines / 2;
             var y = cellY * distanceBetweenLines + distanceBetweenLines / 2;
             LeanTween.cancel(_displayTransform.gameObject);
             LeanTween.move(_displayTransform, new Vector2(x, y), 0.1f).setEaseOutQuad();
 
-            if (cellX < 0 || cellX >= _boardDisplay.BoardSize || cellY < 0 || cellY >= _boardDisplay.BoardSize)
+            if (cellX < 0 || cellX >= _boardDisplay.BoardSize || cellY < 0 || cellY >= _boardDisplay.BoardSize || _boardDisplay.Game.Board[cellX, cellY] != Point.Empty)
             {
                 _displayImage.enabled = false;
                 return;
@@ -65,6 +72,11 @@ namespace SunnyMonster.GoEngine.Rendering
         private void OnWindowSizeChanged()
         {
             GetComponent<RectTransform>().sizeDelta = new Vector2(_boardDisplay.DistsanceBetweenLines, _boardDisplay.DistsanceBetweenLines);
+        }
+
+        private void OnBoardChanged()
+        {
+            _illegalMoves = _boardDisplay.Game.GetIllegalMoves();
         }
     }
 }

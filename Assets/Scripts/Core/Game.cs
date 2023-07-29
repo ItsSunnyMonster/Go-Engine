@@ -30,6 +30,22 @@ namespace SunnyMonster.GoEngine.Core
             BoardChanged?.Invoke();
         }
 
+        public List<PointCoordinate> GetIllegalMoves()
+        {
+            var list = new List<PointCoordinate>();
+
+            for (int x = 0; x < _board.GetLength(0); x++)
+            {
+                for (int y = 0; y < _board.GetLength(1); y++)
+                {
+                    if (_board[x, y] != Point.Empty)
+                        list.Add(new PointCoordinate(x, y));
+                }
+            }
+
+            return list;
+        }
+
         public Point[,] Board
         {
             get
@@ -57,5 +73,17 @@ namespace SunnyMonster.GoEngine.Core
     {
         Black,
         White
+    }
+
+    public struct PointCoordinate
+    {
+        int x;
+        int y;
+
+        public PointCoordinate(int x, int y)
+        {
+            this.x = x;
+            this.y = y;
+        }
     }
 }

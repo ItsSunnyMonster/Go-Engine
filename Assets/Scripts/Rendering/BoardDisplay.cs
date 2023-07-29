@@ -25,10 +25,14 @@ namespace SunnyMonster.GoEngine.Rendering
 
         private Game _game;
 
-        private void Start()
+        private void Awake()
         {
             _game = new Game(_boardSize);
             _game.BoardChanged += DrawStones;
+        }
+
+        private void Start()
+        {
             DrawLines();
         }
 
