@@ -28,6 +28,12 @@ namespace SunnyMonster.GoEngine.Core
             // Change player
             _currentPlayer = _currentPlayer == Player.Black ? Player.White : Player.Black;
             BoardChanged?.Invoke();
+            // TODO: Check for illegal moves and return false
+        }
+
+        public void Pass()
+        {
+            _currentPlayer = _currentPlayer == Player.Black ? Player.White : Player.Black;
         }
 
         public List<PointCoordinate> GetIllegalMoves()

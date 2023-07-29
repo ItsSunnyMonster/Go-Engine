@@ -65,6 +65,7 @@ namespace SunnyMonster.GoEngine.Rendering
 
         private void OnApplicationFocus(bool focusStatus)
         {
+            // TODO: Remove focus check
             if (!focusStatus)
                 _focused = false;
         }
