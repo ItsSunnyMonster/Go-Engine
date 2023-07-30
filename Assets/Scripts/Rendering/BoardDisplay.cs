@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using SunnyMonster.GoEngine.Core;
-using SunnyMonster.GoEngine.Utils;
+using SunnyMonster.GoEngine.Rendering.Utils;
 using UnityEngine;
 using UnityEngine.UI;
 

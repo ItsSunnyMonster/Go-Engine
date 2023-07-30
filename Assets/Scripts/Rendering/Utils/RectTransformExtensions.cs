@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SunnyMonster.GoEngine.Utils
+namespace SunnyMonster.GoEngine.Rendering.Utils
 {
     public static class RectTransformExtensions
     {

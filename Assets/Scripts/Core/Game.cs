@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using SunnyMonster.GoEngine.Core.Utils;
 using UnityEngine;
 
 namespace SunnyMonster.GoEngine.Core
@@ -25,8 +27,55 @@ namespace SunnyMonster.GoEngine.Core
         public void PlaceStone(int x, int y)
         {
             _board[x, y] = _currentPlayer == Player.Black ? Point.Black : Point.White;
+
+            // Check for captures
+            var piecesAround = new List<(int, int)>();
+
+            if (y < _board.GetLength(1) - 1)
+                piecesAround.Add((x, y + 1));
+            if (y > 0)
+                piecesAround.Add((x, y - 1));
+            if (x < _board.GetLength(0) - 1)
+                piecesAround.Add((x + 1, y));
+            if (x > 0)
+                piecesAround.Add((x - 1, y));
+
+            foreach (var piece in piecesAround)
+            {
+                var (seedPieceX, seedPieceY) = piece;
+
+                if (_board[seedPieceX, seedPieceY] != Point.Empty && _board[seedPieceX, seedPieceY] != _board[x, y])
+                {
+                    var capture = true;
+                    var adjacentBlock = Algorithms.FloodFill2D(
+                        _board,
+                        (p) => p == _board[seedPieceX, seedPieceY],
+                        (x, y) =>
+                        {
+                            // If there is a liberty to the current piece, this group is not captured
+                            if ((y < _board.GetLength(1) - 1 && _board[x, y + 1] == Point.Empty) || (y > 0 && _board[x, y - 1] == Point.Empty) || (x < _board.GetLength(0) - 1 && _board[x + 1, y] == Point.Empty) || (x > 0 && _board[x - 1, y] == Point.Empty))
+                            {
+                                capture = false;
+                                return false;
+                            }
+
+                            return true;
+                        },
+                        seedPieceX, seedPieceY);
+                    if (capture)
+                    {
+                        foreach (var item in adjacentBlock)
+                        {
+                            var (captureX, captureY) = item;
+                            _board[captureX, captureY] = Point.Empty;
+                        }
+                    }
+                }
+            }
+
             // Change player
             _currentPlayer = _currentPlayer == Player.Black ? Player.White : Player.Black;
+
             BoardChanged?.Invoke();
             // TODO: Check for illegal moves and return false
         }
