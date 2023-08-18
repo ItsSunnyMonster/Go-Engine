@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using SunnyMonster.GoEngine.Core;
 using SunnyMonster.GoEngine.Rendering.Utils;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -59,11 +60,13 @@ namespace SunnyMonster.GoEngine.Rendering
                 horizontalLine.transform.SetParent(_linesParent);
                 var rectTransform = horizontalLine.GetComponent<RectTransform>();
                 // If first or last line, make it thicker
-                var thickness = i == 0 || i == _boardSize - 1 ? 4 : 2;
+                float thickness = i == 0 || i == _boardSize - 1 ? 2 : 1;
                 rectTransform.sizeDelta = new Vector2(0, thickness);
                 rectTransform.anchorMin = new Vector2(0, 0);
                 rectTransform.anchorMax = new Vector2(1, 0);
                 rectTransform.pivot = new Vector2(0, 0);
+                // For some reason the scale was changing when I modify the canvas scale factor
+                rectTransform.localScale = new Vector3(1, 1, 1);
                 horizontalLine.GetComponent<Image>().color = _lineColor;
                 // Position: 
                 // Multiply distance between lines by i to get the distance from the left
@@ -71,23 +74,24 @@ namespace SunnyMonster.GoEngine.Rendering
                 // Subtract half the line width to center
                 rectTransform.anchoredPosition = new Vector2(0, distanceBetweenLines * i + distanceBetweenLines / 2 - thickness / 2f);
                 // Make the line 4 pixels longer to fill up the corners
-                rectTransform.SetLeft(distanceBetweenLines / 2 - 2);
-                rectTransform.SetRight(distanceBetweenLines / 2 - 2);
+                rectTransform.SetLeft(distanceBetweenLines / 2 - 1);
+                rectTransform.SetRight(distanceBetweenLines / 2 - 1);
 
                 // Vertical lines
                 // Same as horizontal lines, but with x and y swapped
                 var verticalLine = new GameObject($"Vertical Line {i}", typeof(Image));
                 verticalLine.transform.SetParent(_linesParent);
                 rectTransform = verticalLine.GetComponent<RectTransform>();
-                thickness = i == 0 || i == _boardSize - 1 ? 4 : 2;
+                thickness = i == 0 || i == _boardSize - 1 ? 2 : 1;
                 rectTransform.sizeDelta = new Vector2(thickness, 0);
                 rectTransform.anchorMin = new Vector2(0, 0);
                 rectTransform.anchorMax = new Vector2(0, 1);
                 rectTransform.pivot = new Vector2(0, 0);
+                rectTransform.localScale = new Vector3(1, 1, 1);
                 verticalLine.GetComponent<Image>().color = _lineColor;
                 rectTransform.anchoredPosition = new Vector2(distanceBetweenLines * i + distanceBetweenLines / 2 - thickness / 2f, 0);
-                rectTransform.SetTop(distanceBetweenLines / 2 - 2);
-                rectTransform.SetBottom(distanceBetweenLines / 2 - 2);
+                rectTransform.SetTop(distanceBetweenLines / 2 - 1);
+                rectTransform.SetBottom(distanceBetweenLines / 2 - 1);
             }
         }
 
@@ -122,6 +126,7 @@ namespace SunnyMonster.GoEngine.Rendering
                         rectTransform.anchorMin = new Vector2(0, 0);
                         rectTransform.anchorMax = new Vector2(0, 0);
                         rectTransform.pivot = new Vector2(0, 0);
+                        rectTransform.localScale = new Vector3(1, 1, 1);
                         stone.GetComponent<Image>().color = _game.Board[x, y] == Point.Black ? Color.black : Color.white;
                         rectTransform.anchoredPosition = new Vector2(DistsanceBetweenLines * x, DistsanceBetweenLines * y);
                     }
