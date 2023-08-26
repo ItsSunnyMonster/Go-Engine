@@ -11,6 +11,8 @@ namespace SunnyMonster.GoEngine.Rendering
     public class BoardDisplay : MonoBehaviour
     {
         [SerializeField]
+        private GameObject _stonePrefab;
+        [SerializeField]
         private Transform _linesParent;
         [SerializeField]
         private Transform _stonesParent;
@@ -118,8 +120,7 @@ namespace SunnyMonster.GoEngine.Rendering
                     // If there is a stone, draw it
                     if (_game != null && _game.Board[x, y] != Point.Empty)
                     {
-                        var stone = new GameObject($"Stone {x}, {y}", typeof(Image));
-                        stone.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Stone");
+                        var stone = Instantiate(_stonePrefab);
                         stone.transform.SetParent(_stonesParent);
                         var rectTransform = stone.GetComponent<RectTransform>();
                         rectTransform.sizeDelta = new Vector2(DistsanceBetweenLines, DistsanceBetweenLines);
