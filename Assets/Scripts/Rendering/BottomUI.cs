@@ -1,30 +1,32 @@
 using SunnyMonster.GoEngine.Core;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace SunnyMonster.GoEngine.Rendering
 {
     public class BottomUI : MonoBehaviour
     {
-        [SerializeField]
-        private BoardDisplay _boardDisplay;
-        [SerializeField]
-        private TextMeshProUGUI _gameStatus;
+        [FormerlySerializedAs("_boardDisplay")] [SerializeField]
+        private BoardDisplay boardDisplay;
+        [FormerlySerializedAs("_currentPlayer")] [SerializeField]
+        private Image currentPlayer;
 
         private void Start()
         {
-            _boardDisplay.Game.BoardChanged += UpdateGameStatus;
+            boardDisplay.Game.BoardChanged += UpdateGameStatus;
         }
 
         public void Pass()
         {
-            _boardDisplay.Game.Pass();
+            boardDisplay.Game.Pass();
             UpdateGameStatus();
         }
 
         private void UpdateGameStatus()
         {
-            _gameStatus.text = _boardDisplay.Game.CurrentPlayer == Player.Black ? "Black To Move" : "White To Move";
+            currentPlayer.color = boardDisplay.Game.CurrentPlayer == Player.Black ? Color.black : Color.white;
         }
     }
 }
