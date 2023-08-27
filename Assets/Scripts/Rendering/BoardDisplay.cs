@@ -1,28 +1,28 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using SunnyMonster.GoEngine.Core;
 using SunnyMonster.GoEngine.Rendering.Utils;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace SunnyMonster.GoEngine.Rendering
 {
     public class BoardDisplay : MonoBehaviour
     {
-        [SerializeField]
-        private GameObject _stonePrefab;
-        [SerializeField]
-        private Transform _linesParent;
-        [SerializeField]
-        private Transform _stonesParent;
-        [SerializeField]
-        [Range(1, 19)]
-        private int _boardSize = 19;
-        [SerializeField]
-        private Color _boardColor = new Color(0.82f, 0.68f, 0.47f);
-        [SerializeField]
-        private Color _lineColor = Color.black;
+        [SerializeField] private GameObject _stonePrefab;
+        [SerializeField] private Transform _linesParent;
+        [SerializeField] private Transform _stonesParent;
+
+        [SerializeField] private Transform _stoneSpawnLocation;
+        [SerializeField] private Transform _stoneCaptureLocationWhite;
+        [SerializeField] private Transform _stoneCaptureLocationBlack;
+        [Range(1, 19)] private int _boardSize = 19;
+        [SerializeField] private Color _boardColor = new Color(0.82f, 0.68f, 0.47f);
+        [SerializeField] private Color _lineColor = Color.black;
 
         public event Action WindowSizeChanged;
 
@@ -31,7 +31,9 @@ namespace SunnyMonster.GoEngine.Rendering
         private void Awake()
         {
             _game = new Game(_boardSize);
-            _game.BoardChanged += DrawStones;
+            // _game.BoardChanged += DrawStones;
+            _game.StonePlaced += PlaceStone;
+            _game.StonesCaptured += CaptureStonesCoroutine;
         }
 
         private void Start()
@@ -74,7 +76,8 @@ namespace SunnyMonster.GoEngine.Rendering
                 // Multiply distance between lines by i to get the distance from the left
                 // Add half the distance between lines to center the lines
                 // Subtract half the line width to center
-                rectTransform.anchoredPosition = new Vector2(0, distanceBetweenLines * i + distanceBetweenLines / 2 - thickness / 2f);
+                rectTransform.anchoredPosition = new Vector2(0,
+                    distanceBetweenLines * i + distanceBetweenLines / 2 - thickness / 2f);
                 // Make the line 4 pixels longer to fill up the corners
                 rectTransform.SetLeft(distanceBetweenLines / 2 - 1);
                 rectTransform.SetRight(distanceBetweenLines / 2 - 1);
@@ -91,7 +94,8 @@ namespace SunnyMonster.GoEngine.Rendering
                 rectTransform.pivot = new Vector2(0, 0);
                 rectTransform.localScale = new Vector3(1, 1, 1);
                 verticalLine.GetComponent<Image>().color = _lineColor;
-                rectTransform.anchoredPosition = new Vector2(distanceBetweenLines * i + distanceBetweenLines / 2 - thickness / 2f, 0);
+                rectTransform.anchoredPosition =
+                    new Vector2(distanceBetweenLines * i + distanceBetweenLines / 2 - thickness / 2f, 0);
                 rectTransform.SetTop(distanceBetweenLines / 2 - 1);
                 rectTransform.SetBottom(distanceBetweenLines / 2 - 1);
             }
@@ -128,35 +132,68 @@ namespace SunnyMonster.GoEngine.Rendering
                         rectTransform.anchorMax = new Vector2(0, 0);
                         rectTransform.pivot = new Vector2(0, 0);
                         rectTransform.localScale = new Vector3(1, 1, 1);
-                        stone.GetComponent<Image>().color = _game.Board[x, y] == Point.Black ? Color.black : Color.white;
-                        rectTransform.anchoredPosition = new Vector2(DistsanceBetweenLines * x, DistsanceBetweenLines * y);
+                        stone.GetComponent<Image>().color =
+                            _game.Board[x, y] == Point.Black ? Color.black : Color.white;
+                        rectTransform.anchoredPosition =
+                            new Vector2(DistsanceBetweenLines * x, DistsanceBetweenLines * y);
                     }
                 }
             }
         }
 
+        private void PlaceStone(PointCoordinate coordinate)
+        {
+            var stone = Instantiate(_stonePrefab, _stonesParent, true);
+            stone.name = $"({coordinate.x}, {coordinate.y})";
+            var rectTransform = stone.GetComponent<RectTransform>();
+            rectTransform.sizeDelta = new Vector2(DistsanceBetweenLines, DistsanceBetweenLines);
+            rectTransform.anchorMin = new Vector2(0, 0);
+            rectTransform.anchorMax = new Vector2(0, 0);
+            rectTransform.pivot = new Vector2(0, 0);
+            rectTransform.localScale = new Vector3(1, 1, 1);
+            stone.GetComponent<Image>().color =
+                _game.Board[coordinate.x, coordinate.y] == Point.Black ? Color.black : Color.white;
+            rectTransform.anchoredPosition =
+                new Vector2(DistsanceBetweenLines * coordinate.x, DistsanceBetweenLines * coordinate.y);
+        }
+
+        private void CaptureStonesCoroutine(List<PointCoordinate> coordinates)
+        {
+            StartCoroutine(CaptureStones(coordinates));
+        }
+        
+        private IEnumerator CaptureStones(List<PointCoordinate> coordinates)
+        {
+            foreach (var coordinate in coordinates)
+            {
+                var stone = GameObject.Find($"({coordinate.x}, {coordinate.y})");
+                if (stone == null) continue;
+                var image = stone.GetComponent<Image>();
+                LeanTween.move(stone, _stoneCaptureLocationBlack.position, 0.5f).setEaseInQuad();
+                LeanTween.value(stone, 1, 0, 0.5f).setEaseInQuad().setOnUpdate(f =>
+                {
+                    image.color = new Color(image.color.r, image.color.g, image.color.b, f);
+                }).setOnComplete(() =>
+                {
+                    Destroy(stone);
+                });
+                yield return new WaitForSeconds(0.5f / coordinates.Count);
+            }
+        }
+
         public float DistsanceBetweenLines
         {
-            get
-            {
-                return GetComponent<RectTransform>().rect.width / _boardSize;
-            }
+            get { return GetComponent<RectTransform>().rect.width / _boardSize; }
         }
 
         public int BoardSize
         {
-            get
-            {
-                return _boardSize;
-            }
+            get { return _boardSize; }
         }
 
         public Game Game
         {
-            get
-            {
-                return _game;
-            }
+            get { return _game; }
         }
     }
 }

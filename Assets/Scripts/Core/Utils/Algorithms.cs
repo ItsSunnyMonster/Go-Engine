@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace SunnyMonster.GoEngine.Core.Utils
 {
@@ -23,31 +22,35 @@ namespace SunnyMonster.GoEngine.Core.Utils
             if (!validator(array[startX, startY])) return new List<(int, int)>();
 
             var result = new List<(int, int)>();
-            var visited = new bool[array.GetLength(0), array.GetLength(1)]; // Array to track visited cells
-
-            var stack = new Stack<(int, int)>();
-            stack.Push((startX, startY));
-
-            while (stack.Count != 0)
+            var visited = new bool[array.GetLength(0)][]; // Array to track visited cells
+            for (int index = 0; index < array.GetLength(0); index++)
             {
-                var (x, y) = stack.Pop();
+                visited[index] = new bool[array.GetLength(1)];
+            }
+
+            var queue = new Queue<(int, int)>();
+            queue.Enqueue((startX, startY));
+
+            while (queue.Count != 0)
+            {
+                var (x, y) = queue.Dequeue();
 
                 if (x < 0 || x >= array.GetLength(0) || y < 0 || y >= array.GetLength(1))
                     continue; // Skip out-of-bounds cells
 
-                if (visited[x, y] || !validator(array[x, y]))
+                if (visited[x][y] || !validator(array[x, y]))
                     continue; // Skip already visited or invalid cells
 
-                visited[x, y] = true; // Mark cell as visited
+                visited[x][y] = true; // Mark cell as visited
 
                 result.Add((x, y));
                 if (!callback(x, y)) return result;
 
                 // Add neighboring cells to the stack
-                stack.Push((x + 1, y));
-                stack.Push((x - 1, y));
-                stack.Push((x, y + 1));
-                stack.Push((x, y - 1));
+                queue.Enqueue((x + 1, y));
+                queue.Enqueue((x, y - 1));
+                queue.Enqueue((x - 1, y));
+                queue.Enqueue((x, y + 1));
             }
 
             return result;

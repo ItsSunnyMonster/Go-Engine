@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using SunnyMonster.GoEngine.Core.Utils;
+using Unity.PlasticSCM.Editor.UI;
 using UnityEngine;
 
 namespace SunnyMonster.GoEngine.Core
@@ -13,6 +14,8 @@ namespace SunnyMonster.GoEngine.Core
         private Player _currentPlayer = Player.Black;
 
         public event Action BoardChanged;
+        public event Action<PointCoordinate> StonePlaced;
+        public event Action<List<PointCoordinate>> StonesCaptured;
 
         public Game(int boardSize)
         {
@@ -24,32 +27,36 @@ namespace SunnyMonster.GoEngine.Core
             _board = new Point[19, 19];
         }
 
-        public void PlaceStone(int x, int y)
+        public void PlaceStone(PointCoordinate coordinates)
         {
+            // TODO: CLEAN UP
+            var x = coordinates.x;
+            var y = coordinates.y;
+
+            // TODO: Check for illegal moves and return false
             _board[x, y] = _currentPlayer == Player.Black ? Point.Black : Point.White;
+            StonePlaced?.Invoke(coordinates);
 
             // Check for captures
-            var piecesAround = new List<(int, int)>();
+            var piecesAround = new List<PointCoordinate>();
 
             if (y < _board.GetLength(1) - 1)
-                piecesAround.Add((x, y + 1));
+                piecesAround.Add(new PointCoordinate(x, y + 1));
             if (y > 0)
-                piecesAround.Add((x, y - 1));
+                piecesAround.Add(new PointCoordinate(x, y - 1));
             if (x < _board.GetLength(0) - 1)
-                piecesAround.Add((x + 1, y));
+                piecesAround.Add(new PointCoordinate(x + 1, y));
             if (x > 0)
-                piecesAround.Add((x - 1, y));
+                piecesAround.Add(new PointCoordinate(x - 1, y));
 
-            foreach (var piece in piecesAround)
+            foreach (var seedPiece in piecesAround)
             {
-                var (seedPieceX, seedPieceY) = piece;
-
-                if (_board[seedPieceX, seedPieceY] != Point.Empty && _board[seedPieceX, seedPieceY] != _board[x, y])
+                if (_board[seedPiece.x, seedPiece.y] != Point.Empty && _board[seedPiece.x, seedPiece.y] != _board[x, y])
                 {
                     var capture = true;
                     var adjacentBlock = Algorithms.FloodFill2D(
                         _board,
-                        (p) => p == _board[seedPieceX, seedPieceY],
+                        (p) => p == _board[seedPiece.x, seedPiece.y],
                         (x, y) =>
                         {
                             // If there is a liberty to the current piece, this group is not captured
@@ -61,14 +68,20 @@ namespace SunnyMonster.GoEngine.Core
 
                             return true;
                         },
-                        seedPieceX, seedPieceY);
+                        seedPiece.x, seedPiece.y)
+                        .ConvertAll((tuple =>
+                        {
+                            var coordinates = new PointCoordinate();
+                            (coordinates.x, coordinates.y) = tuple;
+                            return coordinates;
+                        }));
                     if (capture)
                     {
-                        foreach (var item in adjacentBlock)
+                        foreach (var pointCoordinate in adjacentBlock)
                         {
-                            var (captureX, captureY) = item;
-                            _board[captureX, captureY] = Point.Empty;
+                            _board[pointCoordinate.x, pointCoordinate.y] = Point.Empty;
                         }
+                        StonesCaptured?.Invoke(adjacentBlock);
                     }
                 }
             }
@@ -77,7 +90,6 @@ namespace SunnyMonster.GoEngine.Core
             _currentPlayer = _currentPlayer == Player.Black ? Player.White : Player.Black;
 
             BoardChanged?.Invoke();
-            // TODO: Check for illegal moves and return false
         }
 
         public void Pass()
@@ -132,13 +144,18 @@ namespace SunnyMonster.GoEngine.Core
 
     public struct PointCoordinate
     {
-        int x;
-        int y;
+        public int x;
+        public int y;
 
         public PointCoordinate(int x, int y)
         {
             this.x = x;
             this.y = y;
+        }
+
+        public PointCoordinate((int, int) tuple)
+        {
+            (this.x, this.y) = tuple;
         }
     }
 }

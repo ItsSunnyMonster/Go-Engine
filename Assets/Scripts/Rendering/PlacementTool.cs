@@ -54,7 +54,7 @@ namespace SunnyMonster.GoEngine.Rendering
 
             if (Input.GetMouseButtonDown(0))
             {
-                _boardDisplay.Game.PlaceStone(cellX, cellY);
+                _boardDisplay.Game.PlaceStone(new PointCoordinate(cellX, cellY));
             }
         }
 
